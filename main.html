@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" type="imagex/png" href="./Pombo.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Fonte Unicode</title>
+    <style>
+    /* 1. CONFIGURAÇÕES DE FUNDO */
+    body {
+        /* Define a imagem de fundo e o caminho para o arquivo */
+        background-image: url('Fundo.jpg'); 
+        
+        /* Garante que a imagem cubra toda a área do corpo */
+        background-size: cover; 
+        
+        /* Impede que a imagem se repita */
+        background-repeat: no-repeat; 
+        
+        /* Fixa a imagem para que ela não role junto com o conteúdo */
+        background-attachment: fixed;
+        
+        /* Define uma cor de fundo sólida para caso a imagem não carregue */
+        background-color: #f4f4f9; 
+        
+        /* Restante dos estilos originais do corpo */
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+    }
+    
+    /* 2. ESTILOS DO CONTAINER (IMPORTANTE!) */
+    .container {
+        /* Tornamos o container branco e semi-transparente para que o texto se destaque */
+        background: rgba(255, 255, 255, 0.9); /* Branco com 90% de opacidade */
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); /* Sombra mais escura para contraste */
+        width: 90%;
+        max-width: 600px;
+        /* Adiciona margem superior/inferior para separação da tela */
+        margin: 20px 0; 
+    }
+    
+    /* ... (Mantenha o restante dos estilos CSS originais) ... */
+    h1 {
+        color: #333;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    textarea, #output {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+        resize: vertical;
+    }
+    #output {
+        background-color: #e9e9e9;
+        font-size: 1.2em;
+        min-height: 50px;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+    button {
+        padding: 10px 15px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s;
+    }
+    button:hover {
+        background-color: #0056b3;
+    }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🕊️ Fontes de <em>Pru Pru</em> e <em>Foxy</em> 🦊</h1>
+
+        <label for="input-text">Digite sua frase:</label>
+        <textarea id="input-text" rows="3" placeholder="Ex: Comi o c* de quem ta lendo! ^-^"></textarea>
+
+        <label>Frase em Mathematical Bold Italic:</label>
+        <div id="output">...</div>
+        
+        <button id="copy-button">Copiar para a Área de Transferência</button>
+        <p id="status-message" style="color: green; margin-top: 10px;"></p>
+    </div>
+
+    <script>
+        // JAVASCRIPT CORRIGIDO para a Lógica de Conversão e Cópia
+
+        // Mapeamento Unicode CORRIGIDO para Mathematical Bold Italic
+        const unicodeMap = {
+            // Letras Maiúsculas (Mathematical Bold Italic Capitals)
+            'A': '𝑨', 'B': '𝑩', 'C': '𝑪', 'D': '𝑫', 'E': '𝑬', 'F': '𝑭', 'G': '𝑮',
+            'H': '𝑯', 'I': '𝑰', 'J': '𝑱', 'K': '𝑲', 'L': '𝑳', 'M': '𝑴', 'N': '𝑵',
+            'O': '𝑶', 'P': '𝑷', 'Q': '𝑸', 'R': '𝑹', 'S': '𝑺', 'T': '𝑻', 'U': '𝑼',
+            'V': '𝑽', 'W': '𝑾', 'X': '𝑿', 'Y': '𝒀', 'Z': '𝒁',
+
+            // Letras Minúsculas (Mathematical Bold Italic Small)
+            'a': '𝒂', 'b': '𝒃', 'c': '𝒄', 'd': '𝒅', 'e': '𝒆', 'f': '𝒇', 'g': '𝒈',
+            'h': '𝒉', 'i': '𝒊', 'j': '𝒋', 'k': '𝒌', 'l': '𝒍', 'm': '𝒎', 'n': '𝒏',
+            'o': '𝒐', 'p': '𝒑', 'q': '𝒒', 'r': '𝒓', 's': '𝒔', 't': '𝒕', 'u': '𝒖',
+            'v': '𝒗', 'w': '𝒘', 'x': '𝒙', 'y': '𝒚', 'z': '𝒛',
+
+            // Dígitos (Mantendo os Bold para consistência na falta de Italic)
+            '0': '𝟬', '1': '𝟭', '2': '𝟮', '3': '𝟯', '4': '𝟰',
+            '5': '𝟱', '6': '𝟲', '7': '𝟳', '8': '𝟴', '9': '𝟵',
+            
+            // Caracteres que não mudam
+            ' ': ' ', '.': '.', ',': ',', '!': '!', '?': '?'
+        };
+
+        const inputTextarea = document.getElementById('input-text');
+        const outputDiv = document.getElementById('output');
+        const copyButton = document.getElementById('copy-button');
+        const statusMessage = document.getElementById('status-message');
+
+        // Função para converter o texto
+        function applyUnicodeFont(phrase) {
+            let convertedPhrase = "";
+            for (const char of phrase) {
+                // Se o caractere estiver no mapa, usa o unicode; senão, usa o caractere original.
+                convertedPhrase += unicodeMap[char] || char; 
+            }
+            return convertedPhrase;
+        }
+
+        // Função para atualizar o resultado em tempo real
+        function updateOutput() {
+            const input = inputTextarea.value;
+            const converted = applyUnicodeFont(input);
+            outputDiv.textContent = converted;
+        }
+        
+        // Função para copiar para a área de transferência
+        function copyToClipboard() {
+            const textToCopy = outputDiv.textContent;
+            
+            // API Clipboard (moderna e assíncrona)
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(textToCopy)
+                    .then(() => {
+                        statusMessage.textContent = 'Copiado com sucesso!';
+                        setTimeout(() => statusMessage.textContent = '', 2000); // Limpa após 2 segundos
+                    })
+                    .catch(err => {
+                        console.error('Falha ao copiar:', err);
+                        statusMessage.textContent = 'Erro ao copiar!';
+                    });
+            } else {
+                // Fallback (Método antigo)
+                const tempElement = document.createElement('textarea');
+                tempElement.value = textToCopy;
+                document.body.appendChild(tempElement);
+                tempElement.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempElement);
+                
+                statusMessage.textContent = 'Copiado (Fallback)!';
+                setTimeout(() => statusMessage.textContent = '', 2000);
+            }
+        }
+
+        // Event Listeners
+        inputTextarea.addEventListener('input', updateOutput);
+        copyButton.addEventListener('click', copyToClipboard);
+
+        // Inicializa a saída
+        updateOutput(); 
+    </script>
+</body>
+</html>
